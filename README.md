@@ -1,31 +1,37 @@
-[![Static Badge](https://img.shields.io/badge/Telegram-Bot%20Link-Link?style=for-the-badge&logo=Telegram&logoColor=white&logoSize=auto&color=blue)](https://t.me/catsdogs_game_bot/join?startapp=464869246)
+[![Static Badge](https://img.shields.io/badge/Telegram-Bot%20Link-Link?style=for-the-badge&logo=Telegram&logoColor=white&logoSize=auto&color=blue)](https://t.me/catsdogs_game_bot/join?startapp=525256526)
 
 ## Recommendation before use
 
 # 🔥🔥 Use PYTHON 3.10 🔥🔥
 
 ## Features  
-| Feature                                                   | Supported |
-|-----------------------------------------------------------|:---------:|
-| Multithreading                                            |     ✅     |
-| Proxy binding to session                                  |     ✅     |
-| User-Agent binding to session                             |     ✅     |
-| Support pyrogram .session                                 |     ✅     |
-| Registration in bot                                       |     ✅     |
-| Auto-tasks                                                |     ✅     |
-| Daily rewards                                             |     ✅     |
+| Feature                       | Supported |
+|-------------------------------|:---------:|
+| Multithreading                |     ✅     |
+| Proxy binding to session      |     ✅     |
+| User-Agent binding to session |     ✅     |
+| Registration in bot           |     ✅     |
+| Auto-tasks                    |     ✅     |
+| Daily rewards                 |     ✅     |
+| Supports telethon .session    |     ✅     |
 
 
 
 ## [Settings]
-| Settings                |                                 Description                                 |
-|-------------------------|:---------------------------------------------------------------------------:|
-| **API_ID / API_HASH**   | Platform data from which to run the Telegram session (by default - android) |
-| **SLEEP_TIME**          |           Sleep time between cycles (by default - [7200, 10800])            |
-| **START_DELAY**         |            Delay between sessions at start (by default - [5, 25])           |
-| **AUTO_TASK**           |                         Auto tasks (default - True)                         |
-| **JOIN_CHANNELS**       |              Auto-join for tg channels tasks (default - True)               |
-| **CLAIM_REWARD**        |                             Claim daily reward                              |
+| Settings                |                                                                                                                  Description                                                                                                                  |
+|-------------------------|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
+| **API_ID / API_HASH**   |                                                                                  Platform data from which to run the Telegram session (by default - android)                                                                                  |
+| **GLOBAL_CONFIG_PATH**  | Specifies the global path for accounts_config, proxies, sessions. <br/>Specify an absolute path or use an environment variable (default environment variable: **TG_FARM**) <br/>If no environment variable exists, uses the script directory. |
+| **SLEEP_TIME**          |                                                                                            Sleep time between cycles (by default - [7200, 10800])                                                                                             |
+| **SESSION_START_DELAY** |                                                                      Random seconds delay for each session to start from 1 to this value (default : **30**, means 1..30)                                                                      |
+| **AUTO_TASK**           |                                                                                                          Auto tasks (default - True)                                                                                                          |
+| **JOIN_CHANNELS**       |                                                                                               Auto-join for tg channels tasks (default - True)                                                                                                |
+| **CLAIM_REWARD**        |                                                                                                              Claim daily reward                                                                                                               |
+| **REF_ID**              |                                                                                              Your referral id after startapp= (Your telegram ID)                                                                                              |
+| **SESSIONS_PER_PROXY**  |                                                                                            Amount of sessions, that can share same proxy ( **1** )                                                                                            |
+| **USE_PROXY_FROM_FILE** |                                                                               Whether to use a proxy from the `bot/config/proxies.txt` file (True / **False**)                                                                                |
+| **DEVICE_PARAMS**       |                                                                          Enter device settings to make the telegram session look more realistic  (True / **False**)                                                                           |
+| **DEBUG_LOGGING**       |                                                                                     Whether to log error's tracebacks to /logs folder (True / **False**)                                                                                      |
 
 ## Quick Start 📚
 
@@ -41,9 +47,9 @@ Before you begin, make sure you have the following installed:
 3. Record the API_ID and API_HASH provided after registering your application in the .env file.
 
 ## Installation
-You can download the [**repository**](https://github.com/vadymfedorets/CatsvsDogs) by cloning it to your system and installing the necessary dependencies:
+You can download the [**repository**](https://github.com/SP-l33t/CatsvsDogs) by cloning it to your system and installing the necessary dependencies:
 ```shell
-git clone https://github.com/vadymfedorets/CatsvsDogs
+git clone https://github.com/SP-l33t/CatsvsDogs.git
 ```
 
 Then you can do automatic installation by typing:
