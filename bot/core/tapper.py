@@ -39,6 +39,11 @@ class Tapper:
 
         self._webview_data = None
 
+        if self.proxy:
+            proxy = Proxy.from_str(self.proxy)
+            proxy_dict = proxy_utils.to_telethon_proxy(proxy)
+            self.tg_client.set_proxy(proxy_dict)
+
     def log_message(self, message) -> str:
         return f"<light-yellow>{self.session_name}</light-yellow> | {message}"
 
@@ -51,56 +56,70 @@ class Tapper:
 
         return user_agent
 
+    async def initialize_webview_data(self):
+        if not self._webview_data:
+            while True:
+                try:
+                    peer = await self.tg_client.get_input_entity('catsdogs_game_bot')
+                    input_bot_app = InputBotAppShortName(bot_id=peer, short_name="join")
+                    self._webview_data = {'peer': peer, 'app': input_bot_app}
+                    break
+                except FloodWaitError as fl:
+                    fls = fl.seconds
+
+                    logger.warning(self.log_message(f"FloodWait {fl}. Waiting {fls}s"))
+                    await asyncio.sleep(fls + 3)
+
+                except (UnauthorizedError, AuthKeyUnregisteredError):
+                    raise InvalidSession(f"{self.session_name}: User is unauthorized")
+
+                except (UserDeactivatedError, UserDeactivatedBanError, PhoneNumberBannedError):
+                    raise InvalidSession(f"{self.session_name}: User is banned")
+
     async def get_tg_web_data(self) -> str:
-        if self.proxy:
-            proxy = Proxy.from_str(self.proxy)
-            proxy_dict = proxy_utils.to_telethon_proxy(proxy)
-        else:
-            proxy_dict = None
-        self.tg_client.set_proxy(proxy_dict)
-
-        init_data = {}
+        init_data = ""
         with self.lock:
-            async with self.tg_client as client:
-                if not self._webview_data:
-                    while True:
-                        try:
-                            peer = await client.get_input_entity('catsdogs_game_bot')
-                            input_bot_app = InputBotAppShortName(bot_id=peer, short_name="join")
-                            self._webview_data = {'peer': peer, 'app': input_bot_app}
-                            break
-                        except FloodWaitError as fl:
-                            fls = fl.seconds
-
-                            logger.warning(self.log_message(f"FloodWait {fl}"))
-                            logger.info(self.log_message(f"Sleep {fls}s"))
-                            await asyncio.sleep(fls + 3)
+            try:
+                if not self.tg_client.is_connected():
+                    await self.tg_client.connect()
+                await self.initialize_webview_data()
 
                 ref_id = settings.REF_ID if random.randint(0, 100) <= 85 else "525256526"
 
-                web_view = await client(messages.RequestAppWebViewRequest(
+                web_view = await self.tg_client(messages.RequestAppWebViewRequest(
                     **self._webview_data,
                     platform='android',
                     write_allowed=True,
                     start_param=ref_id
                 ))
 
-            auth_url = web_view.url
+                auth_url = web_view.url
 
-            tg_web_data = unquote(
-                string=unquote(string=auth_url.split('tgWebAppData=')[1].split('&tgWebAppVersion')[0]))
+                tg_web_data = unquote(
+                    string=unquote(string=auth_url.split('tgWebAppData=')[1].split('&tgWebAppVersion')[0]))
 
-            user_data = re.findall(r'user=([^&]+)', tg_web_data)[0]
-            chat_instance = re.findall(r'chat_instance=([^&]+)', tg_web_data)[0]
-            chat_type = re.findall(r'chat_type=([^&]+)', tg_web_data)[0]
-            start_param = re.findall(r'start_param=([^&]+)', tg_web_data)[0]
-            auth_date = re.findall(r'auth_date=([^&]+)', tg_web_data)[0]
-            hash_value = re.findall(r'hash=([^&]+)', tg_web_data)[0]
+                user_data = re.findall(r'user=([^&]+)', tg_web_data)[0]
+                chat_instance = re.findall(r'chat_instance=([^&]+)', tg_web_data)[0]
+                chat_type = re.findall(r'chat_type=([^&]+)', tg_web_data)[0]
+                start_param = re.findall(r'start_param=([^&]+)', tg_web_data)[0]
+                auth_date = re.findall(r'auth_date=([^&]+)', tg_web_data)[0]
+                hash_value = re.findall(r'hash=([^&]+)', tg_web_data)[0]
 
-            user_data_encoded = quote(user_data)
-            self.start_param = start_param
-            init_data = (f"user={user_data_encoded}&chat_instance={chat_instance}&chat_type={chat_type}&"
-                         f"start_param={start_param}&auth_date={auth_date}&hash={hash_value}")
+                user_data_encoded = quote(user_data)
+                self.start_param = start_param
+                init_data = (f"user={user_data_encoded}&chat_instance={chat_instance}&chat_type={chat_type}&"
+                             f"start_param={start_param}&auth_date={auth_date}&hash={hash_value}")
+
+            except InvalidSession:
+                raise
+
+            except Exception as error:
+                log_error(self.log_message(f"Unknown error during Authorization: {error}"))
+                await asyncio.sleep(delay=3)
+
+            finally:
+                if self.tg_client.is_connected():
+                    await self.tg_client.disconnect()
 
         return init_data
 
