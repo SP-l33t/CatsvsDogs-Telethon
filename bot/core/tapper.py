@@ -204,7 +204,7 @@ class Tapper:
                         logger.info(self.log_message(f"Performing TG subscription to <lc>{url}</lc>"))
                         # await self.join_tg_channel(url)
                         result = await self.verify_task(http_client, task['id'])
-                    else:
+                    elif task.get('type') != 'invite':
                         logger.info(self.log_message(f"Performing <lc>{task['title']}</lc> task"))
                         result = await self.verify_task(http_client, task['id'])
 
