@@ -18,7 +18,7 @@ from telethon.functions import messages, channels, account
 
 from .agents import generate_random_user_agent
 from bot.config import settings
-from bot.utils import logger, log_error, proxy_utils, config_utils, CONFIG_PATH
+from bot.utils import logger, log_error, proxy_utils, config_utils, AsyncInterProcessLock, CONFIG_PATH
 from bot.exceptions import InvalidSession
 from .headers import headers, get_sec_ch_ua
 
@@ -30,12 +30,10 @@ class Tapper:
         self.tg_client = tg_client
         self.session_name, _ = os.path.splitext(os.path.basename(tg_client.session.filename))
         self.config = config_utils.get_session_config(self.session_name, CONFIG_PATH)
-        self.proxy = self.config.get('proxy', None)
-        self.lock = fasteners.InterProcessLock(os.path.join(os.path.dirname(CONFIG_PATH), 'lock_files',  f"{self.session_name}.lock"))
+        self.proxy = self.config.get('proxy')
+        self.lock = AsyncInterProcessLock(os.path.join(os.path.dirname(CONFIG_PATH), 'lock_files',  f"{self.session_name}.lock"))
         self.start_param = ''
         self.headers = headers
-        self.headers['User-Agent'] = self.check_user_agent()
-        self.headers.update(**get_sec_ch_ua(self.headers.get('User-Agent', '')))
 
         self._webview_data = None
 
@@ -47,14 +45,15 @@ class Tapper:
     def log_message(self, message) -> str:
         return f"<light-yellow>{self.session_name}</light-yellow> | {message}"
 
-    def check_user_agent(self):
+    async def check_user_agent(self):
         user_agent = self.config.get('user_agent')
         if not user_agent:
             user_agent = generate_random_user_agent()
             self.config['user_agent'] = user_agent
-            config_utils.update_session_config_in_file(self.session_name, self.config, CONFIG_PATH)
+            await config_utils.update_session_config_in_file(self.session_name, self.config, CONFIG_PATH)
 
-        return user_agent
+        self.headers['User-Agent'] = user_agent
+        self.headers.update(**get_sec_ch_ua(user_agent))
 
     async def initialize_webview_data(self):
         if not self._webview_data:
@@ -78,7 +77,7 @@ class Tapper:
 
     async def get_tg_web_data(self) -> str:
         init_data = ""
-        with self.lock:
+        async with self.lock:
             try:
                 if not self.tg_client.is_connected():
                     await self.tg_client.connect()
@@ -120,7 +119,7 @@ class Tapper:
             finally:
                 if self.tg_client.is_connected():
                     await self.tg_client.disconnect()
-                    await asyncio.sleep(1)
+                    await asyncio.sleep(15)
 
         return init_data
 
@@ -164,7 +163,7 @@ class Tapper:
         if path == 'money':
             return
 
-        with self.lock:
+        async with self.lock:
             async with self.tg_client as client:
                 try:
                     if path.startswith('+'):
@@ -191,6 +190,8 @@ class Tapper:
                     logger.info(self.log_message(f"Subscribe to channel: <y>{channel_title}</y>"))
                 except Exception as e:
                     log_error(self.log_message(f"(Task) Error while subscribing to tg channel: {e}"))
+
+            await asyncio.sleep(random.uniform(15, 20))
 
     async def processing_tasks(self, http_client: aiohttp.ClientSession):
         try:
@@ -282,6 +283,7 @@ class Tapper:
             await asyncio.sleep(delay=3)
 
     async def run(self) -> None:
+        await self.check_user_agent()
         random_delay = random.randint(1, settings.SESSION_START_DELAY)
         logger.info(self.log_message(f"Bot will start in <ly>{random_delay}s</ly>"))
         await asyncio.sleep(random_delay)
