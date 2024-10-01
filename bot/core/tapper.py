@@ -210,6 +210,8 @@ class Tapper:
                     elif task.get('type') != 'invite':
                         logger.info(self.log_message(f"Performing <lc>{task['title']}</lc> task"))
                         result = await self.verify_task(http_client, task['id'])
+                    else:
+                        continue
 
                     if result:
                         logger.success(self.log_message(f"Task <lc>{task['title']}</lc> completed! |"
