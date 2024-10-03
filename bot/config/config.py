@@ -11,7 +11,7 @@ class Settings(BaseSettings):
     SLEEP_TIME: list[int] = [7200, 10800]
     SESSION_START_DELAY: int = 30
     AUTO_TASK: bool = True
-    JOIN_TG_CHANNELS: bool = True
+    CHANNEL_SUBSCRIBE_TASKS: bool = True
     CLAIM_REWARD: bool = True
     REF_ID: str = '525256526'
     DISABLED_TASKS: list[str] = ['INVITE_FRIENDS', 'TON_TRANSACTION', 'BOOST_CHANNEL', 'ACTIVITY_CHALLENGE', 'CONNECT_WALLET']
