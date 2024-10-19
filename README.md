@@ -5,34 +5,40 @@
 # 🔥🔥 Use PYTHON 3.10 🔥🔥
 
 ## Features  
-| Feature                       | Supported |
-|-------------------------------|:---------:|
-| Multithreading                |     ✅     |
-| Proxy binding to session      |     ✅     |
-| User-Agent binding to session |     ✅     |
-| Registration in bot           |     ✅     |
-| Auto-tasks                    |     ✅     |
-| Daily rewards                 |     ✅     |
-| Supports telethon .session    |     ✅     |
+|                 Feature                 | Supported |
+|:---------------------------------------:|:---------:|
+|             Multithreading              |     ✅     |
+|        Proxy binding to session         |     ✅     |
+|      User-Agent binding to session      |     ✅     |
+|           Registration in bot           |     ✅     |
+|               Auto-tasks                |     ✅     |
+|              Daily rewards              |     ✅     |
+| Supports telethon AND pyrogram .session |     ✅     |
+
+_Script searches for session files in the following folders:_
+* /sessions
+* /sessions/pyrogram
+* /session/telethon
 
 
 
 ## [Settings]
-| Settings                    |                                                                                                                  Description                                                                                                                  |
-|-----------------------------|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
-| **API_ID / API_HASH**       |                                                                                  Platform data from which to run the Telegram session (by default - android)                                                                                  |
-| **GLOBAL_CONFIG_PATH**      | Specifies the global path for accounts_config, proxies, sessions. <br/>Specify an absolute path or use an environment variable (default environment variable: **TG_FARM**) <br/>If no environment variable exists, uses the script directory. |
-| **SLEEP_TIME**              |                                                                                            Sleep time between cycles (by default - [7200, 10800])                                                                                             |
-| **SESSION_START_DELAY**     |                                                                      Random seconds delay for each session to start from 1 to this value (default : **30**, means 1..30)                                                                      |
-| **AUTO_TASK**               |                                                                                                          Auto tasks (default - True)                                                                                                          |
+|          Settings           |                                                                                                                  Description                                                                                                                  |
+|:---------------------------:|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------:|
+|    **API_ID / API_HASH**    |                                                                                  Platform data from which to run the Telegram session (by default - android)                                                                                  |
+|   **GLOBAL_CONFIG_PATH**    | Specifies the global path for accounts_config, proxies, sessions. <br/>Specify an absolute path or use an environment variable (default environment variable: **TG_FARM**) <br/>If no environment variable exists, uses the script directory. |
+|        **FIX_CERT**         |                                                                                           Try to fix  SSLCertVerificationError ( True / **False** )                                                                                           |
+|       **SLEEP_TIME**        |                                                                                            Sleep time between cycles (by default - [7200, 10800])                                                                                             |
+|   **SESSION_START_DELAY**   |                                                                      Random seconds delay for each session to start from 1 to this value (default : **30**, means 1..30)                                                                      |
+|        **AUTO_TASK**        |                                                                                                          Auto tasks (default - True)                                                                                                          |
 | **CHANNEL_SUBSCRIBE_TASKS** |                                                                                               Auto-join for tg channels tasks (default - True)                                                                                                |
-| **CLAIM_REWARD**            |                                                                                                              Claim daily reward                                                                                                               |
-| **REF_ID**                  |                                                                                              Your referral id after startapp= (Your telegram ID)                                                                                              |
-| **SESSIONS_PER_PROXY**      |                                                                                            Amount of sessions, that can share same proxy ( **1** )                                                                                            |
-| **USE_PROXY_FROM_FILE**     |                                                                               Whether to use a proxy from the `bot/config/proxies.txt` file (**True** / False)                                                                                |
-| **DISABLE_PROXY_REPLACE**   |                                                                      Disable automatic checking and replacement of non-working proxies before startup (True / **False**)                                                                      |
-| **DEVICE_PARAMS**           |                                                                          Enter device settings to make the telegram session look more realistic  (True / **False**)                                                                           |
-| **DEBUG_LOGGING**           |                                                                                     Whether to log error's tracebacks to /logs folder (True / **False**)                                                                                      |
+|      **CLAIM_REWARD**       |                                                                                                              Claim daily reward                                                                                                               |
+|         **REF_ID**          |                                                                                              Your referral id after startapp= (Your telegram ID)                                                                                              |
+|   **SESSIONS_PER_PROXY**    |                                                                                            Amount of sessions, that can share same proxy ( **1** )                                                                                            |
+|   **USE_PROXY_FROM_FILE**   |                                                                               Whether to use a proxy from the `bot/config/proxies.txt` file (**True** / False)                                                                                |
+|  **DISABLE_PROXY_REPLACE**  |                                                                      Disable automatic checking and replacement of non-working proxies before startup (True / **False**)                                                                      |
+|      **DEVICE_PARAMS**      |                                                                          Enter device settings to make the telegram session look more realistic  (True / **False**)                                                                           |
+|      **DEBUG_LOGGING**      |                                                                                     Whether to log error's tracebacks to /logs folder (True / **False**)                                                                                      |
 
 ## Quick Start 📚
 
