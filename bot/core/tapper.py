@@ -118,7 +118,7 @@ class Tapper:
                 if task.get('hidden'):
                     continue
                 skip_task_ids = [44]
-                if not task['transaction_id'] and not task['id'] not in skip_task_ids:
+                if not task['transaction_id'] and task['id'] not in skip_task_ids:
                     if task.get('channel_id') and task.get('type') != 'invite':
                         if not settings.CHANNEL_SUBSCRIBE_TASKS:
                             continue
