@@ -108,6 +108,7 @@ class Tapper:
             return False
 
     async def processing_tasks(self, http_client: aiohttp.ClientSession):
+        channel_subs = 0
         try:
             tasks_req = await http_client.get(f"{CATS_API_URL}/tasks/list")
             tasks_req.raise_for_status()
@@ -120,12 +121,13 @@ class Tapper:
                 skip_task_ids = [44]
                 if not task['transaction_id'] and task['id'] not in skip_task_ids:
                     if task.get('channel_id') and task.get('type') != 'invite':
-                        if not settings.CHANNEL_SUBSCRIBE_TASKS:
+                        if not settings.CHANNEL_SUBSCRIBE_TASKS or channel_subs >= 1:
                             continue
                         url = task['link']
                         logger.info(self.log_message(f"Performing TG subscription to <lc>{url}</lc>"))
                         await self.tg_client.join_and_mute_tg_channel(url)
                         result = await self.verify_task(http_client, task['id'])
+                        channel_subs += 1
                     elif task.get('type') != 'invite':
                         logger.info(self.log_message(f"Performing <lc>{task['title']}</lc> task"))
                         result = await self.verify_task(http_client, task['id'])
