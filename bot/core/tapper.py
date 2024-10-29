@@ -8,7 +8,7 @@ from aiocfscrape import CloudflareScraper
 from aiohttp_proxy import ProxyConnector
 from better_proxy import Proxy
 from datetime import datetime, timedelta, timezone
-from random import randint, uniform
+from random import randint, uniform, shuffle
 from time import time
 
 from bot.utils.universal_telegram_client import UniversalTelegramClient
@@ -113,14 +113,16 @@ class Tapper:
             tasks_req = await http_client.get(f"{CATS_API_URL}/tasks/list")
             tasks_req.raise_for_status()
             tasks_json = await tasks_req.json()
+            shuffle(tasks_json)
 
+            skip_task_types = ['bitget_uid', "video_code", 'invite']
             for task in tasks_json:
                 await asyncio.sleep(uniform(1, 3))
-                if task.get('hidden'):
+                if (task.get('hidden') or task.get('type') in skip_task_types or not task.get('auto_claim')) \
+                        and not task.get('channel_id'):
                     continue
-                skip_task_ids = [44]
-                if not task['transaction_id'] and task['id'] not in skip_task_ids:
-                    if task.get('channel_id') and task.get('type') != 'invite':
+                if not task['transaction_id']:
+                    if task.get('channel_id'):
                         if not settings.CHANNEL_SUBSCRIBE_TASKS or channel_subs >= 1:
                             continue
                         url = task['link']
@@ -128,9 +130,11 @@ class Tapper:
                         await self.tg_client.join_and_mute_tg_channel(url)
                         result = await self.verify_task(http_client, task['id'])
                         channel_subs += 1
+                        await asyncio.sleep(delay=randint(5, 10))
                     elif task.get('type') != 'invite':
                         logger.info(self.log_message(f"Performing <lc>{task['title']}</lc> task"))
                         result = await self.verify_task(http_client, task['id'])
+                        await asyncio.sleep(delay=randint(5, 10))
                     else:
                         continue
 
@@ -139,8 +143,6 @@ class Tapper:
                                        f" Reward: <e>+{task['amount']}</e> FOOD"))
                     else:
                         logger.info(self.log_message(f"Task <lc>{task['title']}</lc> not completed"))
-
-                    await asyncio.sleep(delay=randint(5, 10))
 
         except Exception as error:
             log_error(self.log_message(f"Unknown error when processing tasks: {error}"))

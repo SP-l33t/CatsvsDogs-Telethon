@@ -11,12 +11,11 @@ class Settings(BaseSettings):
     FIX_CERT: bool = False
 
     SLEEP_TIME: list[int] = [7200, 10800]
-    SESSION_START_DELAY: int = 30
+    SESSION_START_DELAY: int = 360
     AUTO_TASK: bool = True
     CHANNEL_SUBSCRIBE_TASKS: bool = True
     CLAIM_REWARD: bool = True
     REF_ID: str = '525256526'
-    DISABLED_TASKS: list[str] = ['INVITE_FRIENDS', 'TON_TRANSACTION', 'BOOST_CHANNEL', 'ACTIVITY_CHALLENGE', 'CONNECT_WALLET']
 
     SESSIONS_PER_PROXY: int = 1
     USE_PROXY_FROM_FILE: bool = True
