@@ -123,7 +123,6 @@ class Tapper:
                     continue
                 if not task['transaction_id']:
                     if task.get('type') == "video_code":
-                        print(str(task.get('id', 0)))
                         if str(task.get('id', 0)) in settings.YOUTUBE_DATA:
                             logger.info(self.log_message(f"Performing <lc>{task['title']}</lc> task"))
                             video_data = settings.YOUTUBE_DATA.get(str(task['id']))
