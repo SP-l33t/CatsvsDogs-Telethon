@@ -26,5 +26,7 @@ class Settings(BaseSettings):
 
     DEBUG_LOGGING: bool = False
 
+    YOUTUBE_DATA: dict = {}
+
 
 settings = Settings()

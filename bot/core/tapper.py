@@ -115,25 +115,36 @@ class Tapper:
             tasks_json = await tasks_req.json()
             shuffle(tasks_json)
 
-            skip_task_types = ['bitget_uid', "video_code", 'invite']
+            skip_task_types = ['bitget_uid', 'invite']
             for task in tasks_json:
                 await asyncio.sleep(uniform(1, 3))
-                if (task.get('hidden') or task.get('type') in skip_task_types or not task.get('auto_claim')) \
-                        and not task.get('channel_id'):
+                if task.get('hidden') or task.get('type') in skip_task_types \
+                        or not (task.get('auto_claim') or task.get('type') == "video_code"):
                     continue
                 if not task['transaction_id']:
-                    if task.get('channel_id'):
+                    if task.get('type') == "video_code":
+                        print(str(task.get('id', 0)))
+                        if str(task.get('id', 0)) in settings.YOUTUBE_DATA:
+                            logger.info(self.log_message(f"Performing <lc>{task['title']}</lc> task"))
+                            video_data = settings.YOUTUBE_DATA.get(str(task['id']))
+                            result = await self.claim_task(http_client, task['id'], video_data.get("code"))
+                            if result:
+                                logger.success(self.log_message(
+                                    f"Successfully claimed YT task: {video_data.get('title')}"))
+                                await asyncio.sleep(uniform(30, 60))
+                        continue
+                    elif task.get('channel_id'):
                         if not settings.CHANNEL_SUBSCRIBE_TASKS or channel_subs >= 1:
                             continue
                         url = task['link']
                         logger.info(self.log_message(f"Performing TG subscription to <lc>{url}</lc>"))
                         await self.tg_client.join_and_mute_tg_channel(url)
-                        result = await self.verify_task(http_client, task['id'])
+                        result = await self.claim_task(http_client, task['id'])
                         channel_subs += 1
                         await asyncio.sleep(delay=randint(5, 10))
                     elif task.get('type') != 'invite':
                         logger.info(self.log_message(f"Performing <lc>{task['title']}</lc> task"))
-                        result = await self.verify_task(http_client, task['id'])
+                        result = await self.claim_task(http_client, task['id'])
                         await asyncio.sleep(delay=randint(5, 10))
                     else:
                         continue
@@ -162,23 +173,23 @@ class Tapper:
             log_error(self.log_message(f"Unknown error when processing tasks: {error}"))
             await asyncio.sleep(delay=3)
 
-    async def verify_task(self, http_client: aiohttp.ClientSession, task_id: int):
+    async def claim_task(self, http_client: aiohttp.ClientSession, task_id: int, verification_code: str = None):
+        verif_code = {"verification_code": verification_code} if verification_code else {}
         try:
-            response = await http_client.post(f'https://api.catsdogs.live/tasks/claim', json={'task_id': task_id})
+            response = await http_client.post(f'https://api.catsdogs.live/tasks/claim',
+                                              json={'task_id': task_id, **verif_code})
             response.raise_for_status()
             response_json = await response.json()
-            for value in response_json.values():
-                if value == 'success':
-                    return True
+            if response_json.get('status') == 'success':
+                return True
             return False
 
         except Exception as e:
-            log_error(self.log_message(f"Unknown error while verifying task {task_id} | Error: {e}"))
+            log_error(self.log_message(f"Unknown error while claming task {task_id} | Error: {e}"))
             await asyncio.sleep(delay=3)
 
     async def claim_reward(self, http_client: aiohttp.ClientSession):
         try:
-            result = False
             last_claimed = await http_client.get('https://api.catsdogs.live/user/info')
             last_claimed.raise_for_status()
             last_claimed_json = await last_claimed.json()
@@ -195,10 +206,9 @@ class Tapper:
             if not claimed_at or current_time > available_to_claim:
                 response = await http_client.post('https://api.catsdogs.live/game/claim')
                 response.raise_for_status()
-                response_json = await response.json()
-                result = True
+                return (await response.json()).get("claimed_amount")
 
-            return result
+            return None
 
         except Exception as e:
             log_error(self.log_message(f"Unknown error while claming game reward | Error: {e}"))
@@ -250,7 +260,10 @@ class Tapper:
 
                         if settings.CLAIM_REWARD:
                             reward_status = await self.claim_reward(http_client=http_client)
-                            logger.info(self.log_message(f"Claim reward: {reward_status}"))
+                            logger.info(self.log_message(f"Claim reward: <lc>{reward_status}</lc>"))
+
+                        balance = await self.get_balance(http_client)
+                        logger.info(self.log_message(f"Balance: <e>{balance}</e> $FOOD"))
 
                         logger.info(self.log_message(f"Sleep <y>{round(sleep_time / 60, 1)}</y> min"))
                         await asyncio.sleep(delay=sleep_time)
