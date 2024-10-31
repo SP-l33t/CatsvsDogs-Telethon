@@ -9,6 +9,7 @@ class Settings(BaseSettings):
     GLOBAL_CONFIG_PATH: str = "TG_FARM"
 
     FIX_CERT: bool = False
+    TRACK_BOT_UPDATES: bool = True
 
     SLEEP_TIME: list[int] = [7200, 10800]
     SESSION_START_DELAY: int = 360
