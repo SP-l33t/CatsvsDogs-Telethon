@@ -160,7 +160,7 @@ class Tapper:
 
     async def get_balance(self, http_client: aiohttp.ClientSession):
         try:
-            balance_req = await http_client.get('https://api.catsdogs.live/user/balance')
+            balance_req = await http_client.get(f'{CATS_API_URL}/user/balance')
             balance_req.raise_for_status()
             balance_json = await balance_req.json()
             balance = 0
@@ -175,7 +175,7 @@ class Tapper:
     async def claim_task(self, http_client: aiohttp.ClientSession, task_id: int, verification_code: str = None):
         verif_code = {"verification_code": verification_code} if verification_code else {}
         try:
-            response = await http_client.post(f'https://api.catsdogs.live/tasks/claim',
+            response = await http_client.post(f'{CATS_API_URL}/tasks/claim',
                                               json={'task_id': task_id, **verif_code})
             response.raise_for_status()
             response_json = await response.json()
@@ -189,7 +189,7 @@ class Tapper:
 
     async def claim_reward(self, http_client: aiohttp.ClientSession):
         try:
-            last_claimed = await http_client.get('https://api.catsdogs.live/user/info')
+            last_claimed = await http_client.get(f'{CATS_API_URL}/user/info')
             last_claimed.raise_for_status()
             last_claimed_json = await last_claimed.json()
             claimed_at = last_claimed_json['claimed_at']
@@ -203,7 +203,7 @@ class Tapper:
 
                 available_to_claim = datetime.fromisoformat(claimed_at) + timedelta(hours=8)
             if not claimed_at or current_time > available_to_claim:
-                response = await http_client.post('https://api.catsdogs.live/game/claim')
+                response = await http_client.post(f'{CATS_API_URL}/game/claim')
                 response.raise_for_status()
                 return (await response.json()).get("claimed_amount")
 
