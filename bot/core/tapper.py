@@ -187,6 +187,12 @@ class Tapper:
             log_error(self.log_message(f"Unknown error while claming task {task_id} | Error: {e}"))
             await asyncio.sleep(delay=3)
 
+    @staticmethod
+    async def game_current(http_client: aiohttp.ClientSession):
+        resp = await http_client.get(f"{CATS_API_URL}/game/current")
+        if resp.status in range(200, 300):
+            return await resp.json()
+
     async def claim_reward(self, http_client: aiohttp.ClientSession):
         try:
             last_claimed = await http_client.get(f'{CATS_API_URL}/user/info')
@@ -250,6 +256,8 @@ class Tapper:
 
                         await asyncio.sleep(delay=uniform(1, 3))
 
+                        await self.game_current(http_client)
+
                         balance = await self.get_balance(http_client)
                         logger.info(self.log_message(f"Balance: <e>{balance}</e> $FOOD"))
 
@@ -260,6 +268,8 @@ class Tapper:
                         if settings.CLAIM_REWARD:
                             reward_status = await self.claim_reward(http_client=http_client)
                             logger.info(self.log_message(f"Claim reward: <lc>{reward_status}</lc>"))
+
+                        await self.game_current(http_client)
 
                         balance = await self.get_balance(http_client)
                         logger.info(self.log_message(f"Balance: <e>{balance}</e> $FOOD"))

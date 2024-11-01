@@ -169,3 +169,5 @@ cython_debug/
 proxies.txt
 
 logs/
+
+first_run.txt
