@@ -44,7 +44,6 @@ class Tapper:
 
         self.start_param = None
 
-        self.user_data = None
         self._webview_data = None
 
     def log_message(self, message) -> str:
@@ -53,23 +52,7 @@ class Tapper:
     async def get_tg_web_data(self) -> str:
         webview_url = await self.tg_client.get_app_webview_url('catsdogs_game_bot', "join", "525256526")
 
-        tg_web_data = unquote(unquote(string=webview_url.split('tgWebAppData=')[1].split('&tgWebAppVersion')[0]))
-        self.user_data = json.loads(parse_qs(tg_web_data).get('user', [''])[0])
-
-        user_data = re.findall(r'user=([^&]+)', tg_web_data)[0]
-        chat_instance = re.findall(r'chat_instance=([^&]+)', tg_web_data)[0]
-        chat_type = re.findall(r'chat_type=([^&]+)', tg_web_data)[0]
-        start_param = re.findall(r'start_param=([^&]+)', tg_web_data)
-        self.start_param = int(start_param[0]) if start_param else None
-        auth_date = re.findall(r'auth_date=([^&]+)', tg_web_data)[0]
-        hash_value = re.findall(r'hash=([^&]+)', tg_web_data)[0]
-
-        user_data_encoded = quote(user_data)
-        start_param = f"start_param={self.start_param}" if self.start_param else ""
-        init_data = (f"user={user_data_encoded}&chat_instance={chat_instance}&chat_type={chat_type}&"
-                     f"{start_param}&auth_date={auth_date}&hash={hash_value}")
-
-        return init_data
+        return unquote(string=webview_url.split('tgWebAppData=')[1].split('&tgWebAppVersion')[0])
 
     async def login(self, http_client: aiohttp.ClientSession):
         try:
@@ -254,7 +237,7 @@ class Tapper:
                         access_token_created_time = time()
                         sleep_time = randint(settings.SLEEP_TIME[0], settings.SLEEP_TIME[1])
 
-                        await asyncio.sleep(delay=uniform(1, 3))
+                        await asyncio.sleep(uniform(1, 3))
 
                         await self.game_current(http_client)
 
@@ -262,7 +245,7 @@ class Tapper:
                         logger.info(self.log_message(f"Balance: <e>{balance}</e> $FOOD"))
 
                         if settings.AUTO_TASK:
-                            await asyncio.sleep(delay=uniform(5, 10))
+                            await asyncio.sleep(uniform(5, 10))
                             await self.processing_tasks(http_client=http_client)
 
                         if settings.CLAIM_REWARD:
