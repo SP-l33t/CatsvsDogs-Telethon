@@ -1,9 +1,7 @@
 import aiohttp
 import asyncio
-import json
-import re
 import time
-from urllib.parse import unquote, quote, parse_qs
+from urllib.parse import unquote
 from aiocfscrape import CloudflareScraper
 from aiohttp_proxy import ProxyConnector
 from better_proxy import Proxy
