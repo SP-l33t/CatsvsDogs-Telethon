@@ -8,7 +8,7 @@ from bot.utils import logger
 from bot.config import settings
 from hashlib import sha256
 
-appUrl = "https://catsdogs.live/"
+appUrl = "https://foodz.live/"
 versions = "https://github.com/SP-l33t/Auxiliary-Data/raw/refs/heads/main/version_track.json"
 main_js_mask = r'href="\./(.*?app\..*?\.js)"'
 
