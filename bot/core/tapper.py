@@ -1,7 +1,7 @@
 import aiohttp
 import asyncio
 import time
-from urllib.parse import unquote
+from urllib.parse import unquote, parse_qs
 from aiocfscrape import CloudflareScraper
 from aiohttp_proxy import ProxyConnector
 from better_proxy import Proxy
@@ -49,8 +49,24 @@ class Tapper:
 
     async def get_tg_web_data(self) -> str:
         webview_url = await self.tg_client.get_app_webview_url('catsdogs_game_bot', "join", "525256526")
+        init_data = unquote(string=webview_url.split('tgWebAppData=')[1].split('&tgWebAppVersion')[0])
+        self.start_param = parse_qs(init_data).get('start_param', [''])[0]
 
-        return unquote(string=webview_url.split('tgWebAppData=')[1].split('&tgWebAppVersion')[0])
+        return init_data
+
+    async def check_proxy(self, http_client: aiohttp.ClientSession) -> bool:
+        proxy_conn = http_client.connector
+        if proxy_conn and not hasattr(proxy_conn, '_proxy_host'):
+            logger.info(self.log_message(f"Running Proxy-less"))
+            return True
+        try:
+            response = await http_client.get(url='https://ifconfig.me/ip', timeout=aiohttp.ClientTimeout(15))
+            logger.info(self.log_message(f"Proxy IP: {await response.text()}"))
+            return True
+        except Exception as error:
+            proxy_url = f"{proxy_conn._proxy_type}://{proxy_conn._proxy_host}:{proxy_conn._proxy_port}"
+            log_error(self.log_message(f"Proxy: {proxy_url} | Error: {type(error).__name__}"))
+            return False
 
     async def login(self, http_client: aiohttp.ClientSession):
         try:
@@ -74,20 +90,6 @@ class Tapper:
             log_error(self.log_message(f"Unknown error when logging: {error}"))
             await asyncio.sleep(delay=randint(3, 7))
 
-    async def check_proxy(self, http_client: aiohttp.ClientSession) -> bool:
-        proxy_conn = http_client.connector
-        if proxy_conn and not hasattr(proxy_conn, '_proxy_host'):
-            logger.info(self.log_message(f"Running Proxy-less"))
-            return True
-        try:
-            response = await http_client.get(url='https://ifconfig.me/ip', timeout=aiohttp.ClientTimeout(15))
-            logger.info(self.log_message(f"Proxy IP: {await response.text()}"))
-            return True
-        except Exception as error:
-            proxy_url = f"{proxy_conn._proxy_type}://{proxy_conn._proxy_host}:{proxy_conn._proxy_port}"
-            log_error(self.log_message(f"Proxy: {proxy_url} | Error: {type(error).__name__}"))
-            return False
-
     async def processing_tasks(self, http_client: aiohttp.ClientSession):
         channel_subs = 0
         try:
@@ -98,10 +100,10 @@ class Tapper:
 
             skip_task_types = ['bitget_uid', 'invite']
             for task in tasks_json:
-                await asyncio.sleep(uniform(1, 3))
                 if task.get('hidden') or task.get('type') in skip_task_types \
                         or not (task.get('auto_claim') or task.get('type') == "video_code"):
                     continue
+                await asyncio.sleep(uniform(1, 3))
                 if not task['transaction_id']:
                     if task.get('type') == "video_code":
                         if str(task.get('id', 0)) in settings.YOUTUBE_DATA:
@@ -174,16 +176,12 @@ class Tapper:
             last_claimed = await http_client.get(f'{CATS_API_URL}/user/info')
             last_claimed.raise_for_status()
             last_claimed_json = await last_claimed.json()
-            claimed_at = last_claimed_json['claimed_at']
-            available_to_claim, current_time = None, datetime.now(timezone.utc)
+            claimed_at = last_claimed_json.get('claimed_at')
+            available_to_claim, current_time = None, datetime.now(timezone.utc).timestamp()
             if claimed_at:
-                claimed_at = claimed_at.replace("Z", "+00:00")
-                date_part, rest = claimed_at.split('.')
-                time_part, timez = rest.split('+')
-                microseconds = time_part.ljust(6, '0')
-                claimed_at = f"{date_part}.{microseconds}+{timez}"
+                dt = datetime.strptime(claimed_at, "%Y-%m-%dT%H:%M:%S.%fZ").replace(tzinfo=timezone.utc)
+                available_to_claim = (dt + timedelta(hours=8)).timestamp()
 
-                available_to_claim = datetime.fromisoformat(claimed_at) + timedelta(hours=8)
             if not claimed_at or current_time > available_to_claim:
                 response = await http_client.post(f'{CATS_API_URL}/game/claim')
                 response.raise_for_status()
@@ -211,7 +209,7 @@ class Tapper:
                     await asyncio.sleep(300)
                     continue
 
-                token_live_time = randint(3500, 3600)
+                token_live_time = uniform(3500, 3600)
                 try:
                     if time() - access_token_created_time >= token_live_time or not tg_web_data:
                         tg_web_data = await self.get_tg_web_data()
@@ -243,7 +241,8 @@ class Tapper:
 
                         if settings.CLAIM_REWARD:
                             reward_status = await self.claim_reward(http_client=http_client)
-                            logger.info(self.log_message(f"Claim reward: <lc>{reward_status}</lc>"))
+                            if reward_status:
+                                logger.info(self.log_message(f"Claim reward: <lc>{reward_status}</lc>"))
 
                         await self.game_current(http_client)
 
