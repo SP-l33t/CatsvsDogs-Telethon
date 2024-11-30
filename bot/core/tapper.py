@@ -141,14 +141,9 @@ class Tapper:
 
     async def get_balance(self, http_client: aiohttp.ClientSession):
         try:
-            balance_req = await http_client.get(f'{CATS_API_URL}/user/balance')
-            balance_req.raise_for_status()
-            balance_json = await balance_req.json()
-            balance = 0
-            for value in balance_json.values():
-                if isinstance(value, int):
-                    balance += value
-            return balance
+            request = await http_client.get(f'{CATS_API_URL}/user/balance')
+            request.raise_for_status()
+            return (await request.json()).get('balance', {}).get('food', 0)
         except Exception as error:
             log_error(self.log_message(f"Unknown error when processing tasks: {error}"))
             await asyncio.sleep(delay=3)
