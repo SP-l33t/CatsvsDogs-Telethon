@@ -104,38 +104,38 @@ class Tapper:
                         or not (task.get('auto_claim') or task.get('type') == "video_code"):
                     continue
                 await asyncio.sleep(uniform(1, 3))
-                if not task['transaction_id']:
-                    if task.get('type') == "video_code":
-                        if str(task.get('id', 0)) in settings.YOUTUBE_DATA:
-                            logger.info(self.log_message(f"Performing <lc>{task['title']}</lc> task"))
-                            video_data = settings.YOUTUBE_DATA.get(str(task['id']))
-                            result = await self.claim_task(http_client, task['id'], video_data.get("code"))
-                            if result:
-                                logger.success(self.log_message(
-                                    f"Successfully claimed YT task: {video_data.get('title')}"))
-                                await asyncio.sleep(uniform(30, 60))
-                        continue
-                    elif task.get('channel_id'):
-                        if not settings.CHANNEL_SUBSCRIBE_TASKS or channel_subs >= 1:
-                            continue
-                        url = task['link']
-                        logger.info(self.log_message(f"Performing TG subscription to <lc>{url}</lc>"))
-                        await self.tg_client.join_and_mute_tg_channel(url)
-                        result = await self.claim_task(http_client, task['id'])
-                        channel_subs += 1
-                        await asyncio.sleep(delay=randint(5, 10))
-                    elif task.get('type') != 'invite':
+                if task.get('type') == "video_code":
+                    if str(task.get('id', 0)) in settings.YOUTUBE_DATA:
                         logger.info(self.log_message(f"Performing <lc>{task['title']}</lc> task"))
-                        result = await self.claim_task(http_client, task['id'])
-                        await asyncio.sleep(delay=randint(5, 10))
-                    else:
-                        continue
+                        video_data = settings.YOUTUBE_DATA.get(str(task['id']))
+                        result = await self.claim_task(http_client, task['id'], video_data.get("code"))
+                        if result:
+                            logger.success(self.log_message(
+                                f"Successfully claimed YT task: {video_data.get('title')}"))
+                            await asyncio.sleep(uniform(30, 60))
+                    continue
 
-                    if result:
-                        logger.success(self.log_message(f"Task <lc>{task['title']}</lc> completed! |"
-                                       f" Reward: <e>+{task['amount']}</e> FOOD"))
-                    else:
-                        logger.info(self.log_message(f"Task <lc>{task['title']}</lc> not completed"))
+                elif isinstance(task.get('metadata', {}),dict) and task.get('metadata', {}).get('channel_id'):
+                    if not settings.CHANNEL_SUBSCRIBE_TASKS or channel_subs >= 1:
+                        continue
+                    url = task['link']
+                    logger.info(self.log_message(f"Performing TG subscription to <lc>{url}</lc>"))
+                    await self.tg_client.join_and_mute_tg_channel(url)
+                    result = await self.claim_task(http_client, task['id'])
+                    channel_subs += 1
+                    await asyncio.sleep(delay=randint(5, 10))
+                elif task.get('type') != 'invite':
+                    logger.info(self.log_message(f"Performing <lc>{task['title']}</lc> task"))
+                    result = await self.claim_task(http_client, task['id'])
+                    await asyncio.sleep(delay=randint(5, 10))
+                else:
+                    continue
+
+                if result:
+                    logger.success(self.log_message(f"Task <lc>{task['title']}</lc> completed! |"
+                                   f" Reward: <e>+{task['amount']}</e> FOOD"))
+                else:
+                    logger.info(self.log_message(f"Task <lc>{task['title']}</lc> not completed"))
 
         except Exception as error:
             log_error(self.log_message(f"Unknown error when processing tasks: {error}"))
