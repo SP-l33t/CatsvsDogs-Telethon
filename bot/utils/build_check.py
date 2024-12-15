@@ -53,18 +53,20 @@ async def check_base_url(press_key=True):
                 if last_actual_js in js:
                     live_hash = await get_js_hash(js)
                     if live_hash == last_actual_hash:
-                        logger.success(f"No changes in main js file: <green>{last_actual_js}</green>")
+                        logger.success(f"No changes in main js file: <lg>{last_actual_js}</lg>")
                         return True
                 else:
                     logger.error(f"Main JS updated. New file name: <lr>'{js}'</lr>. Hash: '<lr>{await get_js_hash(js)}</lr>'")
                     if press_key:
-                        input("Press 'Enter' to stop the bot...")
+                        input("Bot updates detected. Contact me to check if it's safe to continue: https://t.me/SP_l33t"
+                              "\nPress 'Enter' to stop the bot...")
                     sys.exit("Bot updates detected. Contact me to check if it's safe to continue: https://t.me/SP_l33t")
 
         else:
             logger.error("<lr>No main js file found. Can't continue</lr>")
             if press_key:
-                input("Press 'Enter' to stop the bot...")
+                input("No main js file found. Contact me to check if it's safe to continue: https://t.me/SP_l33t"
+                      "\nPress 'Enter' to stop the bot...")
             sys.exit("No main js file found. Contact me to check if it's safe to continue: https://t.me/SP_l33t")
 
 
